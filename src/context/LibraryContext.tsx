@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Book, User, Loan, LibraryStats } from '../types/library';
 
@@ -23,10 +22,17 @@ interface LibraryContextType {
   // Loan management
   createLoan: (bookId: string, userId: string) => boolean;
   returnBook: (loanId: string) => void;
+  getUserLoans: (userId: string) => Loan[];
   
-  // Authentication simulation
-  login: (email: string) => boolean;
+  // Authentication
+  login: (email: string, password: string) => boolean;
   logout: () => void;
+  
+  // Permissions
+  canManageUsers: () => boolean;
+  canManageBooks: () => boolean;
+  canManageAllLoans: () => boolean;
+  canViewAllUsers: () => boolean;
 }
 
 const LibraryContext = createContext<LibraryContextType | undefined>(undefined);
@@ -126,7 +132,7 @@ export const LibraryProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   ]);
 
-  const [currentUser, setCurrentUser] = useState<User | null>(users[0]);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
 
   const calculateStats = (): LibraryStats => {
     const totalBooks = books.reduce((sum, book) => sum + book.totalCopies, 0);
@@ -243,9 +249,14 @@ export const LibraryProvider: React.FC<{ children: React.ReactNode }> = ({ child
     ));
   };
 
-  const login = (email: string): boolean => {
+  const getUserLoans = (userId: string): Loan[] => {
+    return loans.filter(loan => loan.userId === userId);
+  };
+
+  const login = (email: string, password: string): boolean => {
+    // Simulação simples de autenticação - em produção, seria verificado no backend
     const user = users.find(u => u.email === email);
-    if (user) {
+    if (user && user.isActive) {
       setCurrentUser(user);
       return true;
     }
@@ -254,6 +265,22 @@ export const LibraryProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   const logout = () => {
     setCurrentUser(null);
+  };
+
+  const canManageUsers = (): boolean => {
+    return currentUser?.type === 'admin';
+  };
+
+  const canManageBooks = (): boolean => {
+    return currentUser?.type === 'admin' || currentUser?.type === 'librarian';
+  };
+
+  const canManageAllLoans = (): boolean => {
+    return currentUser?.type === 'admin' || currentUser?.type === 'librarian';
+  };
+
+  const canViewAllUsers = (): boolean => {
+    return currentUser?.type === 'admin' || currentUser?.type === 'librarian';
   };
 
   return (
@@ -272,8 +299,13 @@ export const LibraryProvider: React.FC<{ children: React.ReactNode }> = ({ child
       deleteUser,
       createLoan,
       returnBook,
+      getUserLoans,
       login,
-      logout
+      logout,
+      canManageUsers,
+      canManageBooks,
+      canManageAllLoans,
+      canViewAllUsers
     }}>
       {children}
     </LibraryContext.Provider>

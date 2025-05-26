@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Book, Users, User, BookOpen } from 'lucide-react';
+import { Book, Users, User, BookOpen, FileText } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface SidebarProps {
@@ -8,15 +8,26 @@ interface SidebarProps {
   onPageChange: (page: string) => void;
   isCollapsed: boolean;
   onToggle: () => void;
+  availablePages: string[];
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ currentPage, onPageChange, isCollapsed, onToggle }) => {
-  const menuItems = [
+const Sidebar: React.FC<SidebarProps> = ({ 
+  currentPage, 
+  onPageChange, 
+  isCollapsed, 
+  onToggle, 
+  availablePages 
+}) => {
+  const allMenuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: BookOpen },
     { id: 'books', label: 'Livros', icon: Book },
     { id: 'users', label: 'Usuários', icon: Users },
-    { id: 'loans', label: 'Empréstimos', icon: User }
+    { id: 'loans', label: 'Empréstimos', icon: User },
+    { id: 'my-loans', label: 'Meus Empréstimos', icon: FileText }
   ];
+
+  // Filter menu items based on available pages
+  const menuItems = allMenuItems.filter(item => availablePages.includes(item.id));
 
   return (
     <div className={cn(
